@@ -11,6 +11,7 @@ struct BudgetListView: View {
     // MARK: - PROPERTY
     let budgetCategoryResults: FetchedResults<BudgetCategory>
     let onDeleteBudgetCategory: (BudgetCategory) -> Void
+    let onEditBudgetCategory: (BudgetCategory) -> Void
     
     // MARK: - FUNCTION
     
@@ -29,12 +30,24 @@ struct BudgetListView: View {
                             
                             Spacer()
                             
-                            VStack {
+                            VStack(alignment: .trailing , spacing: 10) {
                                 Text(budgetCategory.total as NSNumber, formatter: NumberFormatter.currency)
+                                
+                                HStack{
+                                    Text("\(budgetCategory.overSpent ? "Overspent" : "Remaining")")
+                                    
+                                    Text(budgetCategory.remainingBudgetTotal as NSNumber, formatter: NumberFormatter.currency)
+                                }//: HSTACK
+                                .fontWeight(.bold)
+                                .foregroundColor(budgetCategory.overSpent ? .red : .green)
                                 
                             }//: VSTACK
                             
                         }//: HSTACK
+                        .contentShape(Rectangle())
+                        .onLongPressGesture {
+                            onEditBudgetCategory(budgetCategory)
+                        }
                         
                     }//: NAVIGATION LINK
                     
@@ -49,6 +62,7 @@ struct BudgetListView: View {
             }//: CONDITIONS
             
         }//: LIST
+        .listStyle(.plain)
         .navigationDestination(for: BudgetCategory.self) { budgetCategory in
             BudgetDetailView(budgetCategory: budgetCategory)
         }

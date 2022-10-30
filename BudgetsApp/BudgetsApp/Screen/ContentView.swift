@@ -7,11 +7,28 @@
 
 import SwiftUI
 
+enum SheetAction: Identifiable {
+    case add
+    case edit(BudgetCategory)
+    
+    var id: Int {
+        switch self {
+        case .add:
+            return 1
+        case .edit(_):
+            return 2
+        }
+    }
+}
+
 struct ContentView: View {
     // MARK: - PROPERTY
     @Environment(\.managedObjectContext) private var viewContext
-    @FetchRequest(sortDescriptors: []) private var budgetCategoryResults: FetchedResults<BudgetCategory>
-    @State private var isPresented: Bool = false
+    
+//    @FetchRequest(sortDescriptors: []) private var budgetCategoryResults: FetchedResults<BudgetCategory>
+    @FetchRequest(fetchRequest: BudgetCategory.all) var budgetCategoryResults
+    
+    @State private var sheetAction: SheetAction?
     
     // MARK: - FUNCTION
     var total: Double {
@@ -30,24 +47,39 @@ struct ContentView: View {
         }
     }
     
+    private func editBudgetCategory(_ budgetCategory:BudgetCategory) {
+        sheetAction = .edit(budgetCategory)
+    }
+    
     // MARK: - BODY
     var body: some View {
         NavigationStack {
             VStack {
+                HStack {
+                    Text("Total Budget -")
+                    Text(total as NSNumber, formatter: NumberFormatter.currency)
+                        .fontWeight(.bold)
+                }//: HSTACK
                 
-                Text(total as NSNumber, formatter: NumberFormatter.currency)
-                    .fontWeight(.bold)
                 
-                BudgetListView(budgetCategoryResults: budgetCategoryResults, onDeleteBudgetCategory: deleteBudgetCategory)
-   
+                BudgetListView(budgetCategoryResults: budgetCategoryResults,
+                               onDeleteBudgetCategory: deleteBudgetCategory,
+                               onEditBudgetCategory: editBudgetCategory)
+                
             }//: VSTACK
-            .sheet(isPresented: $isPresented, content: {
-                AddBudgetCategoryView()
+            .sheet(item: $sheetAction, content: { sheetAction in
+                
+                switch sheetAction {
+                case .add:
+                    AddBudgetCategoryView()
+                case .edit(let budgetCategory):
+                    AddBudgetCategoryView(budgetCategory: budgetCategory)
+                }
             })//: SHEET
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Add Category") {
-                        isPresented = true
+                        sheetAction = .add
                     }
                 }
             }//: TOOL BAR

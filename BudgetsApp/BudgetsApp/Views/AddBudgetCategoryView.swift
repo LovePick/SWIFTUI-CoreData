@@ -16,7 +16,14 @@ struct AddBudgetCategoryView: View {
     @State private var total: Double = 100
     @State private var messages: [String] = []
     
+    private var budgetCategory: BudgetCategory?
+    
     // MARK: - FUNCTION
+    init(budgetCategory: BudgetCategory? = nil) {
+        self.budgetCategory = budgetCategory
+    }
+    
+    
     var isFormValid: Bool {
         messages.removeAll()
         
@@ -31,11 +38,33 @@ struct AddBudgetCategoryView: View {
         return messages.count == 0
     }
     
-    
+    /*
     private func save() {
         let budgetCategory = BudgetCategory(context: viewContext)
         budgetCategory.title = title
         budgetCategory.total = total
+        
+        // save the context
+        do{
+            try viewContext.save()
+            dismiss()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    */
+    private func saveOrUpdate(){
+        if let budgetCategory {
+            // Update the sxisting budget category
+            let budget = BudgetCategory.byId(budgetCategory.objectID)
+            budget.title = title
+            budget.total = total
+        } else {
+            // save a new budget category
+            let budgetCategory = BudgetCategory(context: viewContext)
+            budgetCategory.title = title
+            budgetCategory.total = total
+        }
         
         // save the context
         do{
@@ -68,6 +97,12 @@ struct AddBudgetCategoryView: View {
                 
                 
             }//: FORM
+            .onAppear{
+                if let budgetCategory {
+                    title = budgetCategory.title ?? ""
+                    total = budgetCategory.total
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -78,7 +113,7 @@ struct AddBudgetCategoryView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save"){
                         if isFormValid {
-                            save()
+                            saveOrUpdate()
                         }
                     }
                 }

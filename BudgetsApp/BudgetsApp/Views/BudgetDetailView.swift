@@ -32,10 +32,27 @@ struct BudgetDetailView: View {
             budgetCategory.addToTransactions(transaction)
             
             try viewContext.save()
+            clearInput()
         } catch {
             print(error)
         }
    
+    }
+    
+    private func clearInput() {
+        title = ""
+        total = ""
+    }
+    
+    
+    private func deleteTransaction(_ transaction: Transaction) {
+        viewContext.delete(transaction)
+        
+        do{
+            try viewContext.save()
+        } catch {
+            print(error)
+        }
     }
     
     // MARK: - BODY
@@ -75,10 +92,18 @@ struct BudgetDetailView: View {
                         
                     }
                     .disabled(!isFormValid)
+                    .buttonStyle(.bordered)//<--?
+                    
                     Spacer()
                 }//: HSTACK
                 
             }//: FORM
+            
+            // Display summary of the budget category
+            BudgetSummaryView(budgetCategory: budgetCategory)
+            
+            // Display the transaction
+            TransactionListView(request: BudgetCategory.transactionsByCategoryRequest(budgetCategory), onDeleteTransaction: deleteTransaction)
             
             Spacer()
             
